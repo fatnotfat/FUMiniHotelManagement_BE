@@ -34,6 +34,8 @@ namespace FUMiniHotelManagement
             builder.Services.AddTransient<IAdminService, AdminService>();
             builder.Services.AddTransient<IStaffRepo, StaffRepo>();
             builder.Services.AddTransient<IStaffService, StaffService>();
+            builder.Services.AddTransient<IHelper, Helper>();
+
 
             builder.Services.AddSwaggerGen(option =>
             {

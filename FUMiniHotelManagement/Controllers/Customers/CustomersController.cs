@@ -140,7 +140,7 @@ namespace Ass1.Controllers.Customers
                 }
             }
 
-            return Ok();
+            return Ok("Update successfully!");
         }
 
         // POST: api/Customers
