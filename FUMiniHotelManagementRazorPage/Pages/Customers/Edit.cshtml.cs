@@ -26,7 +26,7 @@ namespace FUMiniHotelManagementRazorPage.Pages.Customers
         [BindProperty]
         public Customer Customer { get; set; } = default!;
         //public string? ErrorMessageName { get; set; } = default!;
-
+        public string? Token { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int? id, string token)
         {
@@ -46,6 +46,7 @@ namespace FUMiniHotelManagementRazorPage.Pages.Customers
             {
                 return NotFound();
             }
+            Token = token;
             Customer = customer;
             return Page();
         }

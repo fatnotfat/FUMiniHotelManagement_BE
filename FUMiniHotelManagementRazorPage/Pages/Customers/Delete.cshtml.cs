@@ -6,57 +6,71 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using BusinessObject;
+using Services.Interface;
+using Newtonsoft.Json;
 
 namespace FUMiniHotelManagementRazorPage.Pages.Customers
 {
     public class DeleteModel : PageModel
     {
-        private readonly BusinessObject.FUMiniHotelManagementContext _context;
+        private readonly IHelper _helper;
 
-        public DeleteModel(BusinessObject.FUMiniHotelManagementContext context)
+        public DeleteModel(IHelper helper)
         {
-            _context = context;
+            _helper = helper;
         }
 
         [BindProperty]
-      public Customer Customer { get; set; } = default!;
+        public Customer Customer { get; set; } = default!;
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        public string? Token { get; set; }
+
+        public async Task<IActionResult> OnGetAsync(int? id, string token)
         {
-            if (id == null || _context.Customers == null)
+            string baseUrl = "http://localhost:5282/api/v1/customers";
+            var responseString = await _helper.GetAPI(baseUrl, token);
+            var customers = JsonConvert.DeserializeObject<List<Customer>>(responseString);
+            if (id == null || customers == null)
             {
                 return NotFound();
             }
 
-            var customer = await _context.Customers.FirstOrDefaultAsync(m => m.CustomerId == id);
+            string baseUrl1 = $"http://localhost:5282/api/v1/customers/{id}";
+            var responseString1 = await _helper.GetAPI(baseUrl1, token);
+            var customer = JsonConvert.DeserializeObject<Customer>(responseString1);
 
             if (customer == null)
             {
                 return NotFound();
             }
-            else 
+            else
             {
                 Customer = customer;
             }
+            Token = token;
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(int? id)
+        public async Task<IActionResult> OnPostAsync(int? id, string token)
         {
-            if (id == null || _context.Customers == null)
+            string baseUrl = "http://localhost:5282/api/v1/customers";
+            var responseString = await _helper.GetAPI(baseUrl, token);
+            var customers = JsonConvert.DeserializeObject<List<Customer>>(responseString);
+            if (id == null || customers == null)
             {
                 return NotFound();
             }
-            var customer = await _context.Customers.FindAsync(id);
+            string baseUrl1 = $"http://localhost:5282/api/v1/customers/{id}";
+            var responseString1 = await _helper.GetAPI(baseUrl1, token);
+            var customer = JsonConvert.DeserializeObject<Customer>(responseString1);
 
             if (customer != null)
             {
                 Customer = customer;
-                _context.Customers.Remove(Customer);
-                await _context.SaveChangesAsync();
+                var responseString2 = await _helper.DeleteAPI(baseUrl1, token);
             }
 
-            return RedirectToPage("./Index");
+            return RedirectToPage("./Index", new { Token = token });
         }
     }
 }

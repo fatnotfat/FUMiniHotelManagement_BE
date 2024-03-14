@@ -6,16 +6,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using BusinessObject;
+using Services.Interface;
+using NuGet.Common;
+using Newtonsoft.Json;
 
 namespace FUMiniHotelManagementRazorPage.Pages.Customers
 {
     public class CreateModel : PageModel
     {
-        private readonly BusinessObject.FUMiniHotelManagementContext _context;
+        private readonly IHelper _helper;
 
-        public CreateModel(BusinessObject.FUMiniHotelManagementContext context)
+        public CreateModel(IHelper helper)
         {
-            _context = context;
+            _helper = helper;
         }
 
         public IActionResult OnGet()
@@ -23,22 +26,29 @@ namespace FUMiniHotelManagementRazorPage.Pages.Customers
             return Page();
         }
 
+        public string? Token { get; set; }
+        public IList<Customer> Customers { get; set; } = default!;
+
+
         [BindProperty]
         public Customer Customer { get; set; } = default!;
         
 
         // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
-        public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostAsync(string token)
         {
-          if (!ModelState.IsValid || _context.Customers == null || Customer == null)
+            Token = token;
+            string baseUrl = "http://localhost:5282/api/v1/customers";
+            var responseString = await _helper.GetAPI(baseUrl, token);
+            Customers = JsonConvert.DeserializeObject<List<Customer>>(responseString)!;
+            if (!ModelState.IsValid || Customers == null || Customer == null)
             {
                 return Page();
             }
 
-            _context.Customers.Add(Customer);
-            await _context.SaveChangesAsync();
 
-            return RedirectToPage("./Index");
+            var responseString2 = await _helper.PostAPI(baseUrl, token, Customer);
+            return RedirectToPage("./Index", new { Token = token });
         }
     }
 }

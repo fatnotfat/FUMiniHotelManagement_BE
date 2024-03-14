@@ -9,8 +9,8 @@ namespace Services.Interface
     public interface IHelper
     {
         public Task<string> GetAPI(string url, string token);
-        public Task<string> PostAPI(string url, string token);
+        public Task<string> PostAPI(string url, string token, object obj);
         public Task<string> PutAPI(string url, string token, object obj);
-
+        public Task<string> DeleteAPI(string url, string token);
     }
 }

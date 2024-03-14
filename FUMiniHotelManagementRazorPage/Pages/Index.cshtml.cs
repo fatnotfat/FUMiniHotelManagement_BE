@@ -1,5 +1,6 @@
 ﻿using BusinessObject;
 using BusinessObject.DTO;
+using FUMiniHotelManagementRazorPage.Pages.SessionHelpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
@@ -50,6 +51,7 @@ namespace FUMiniHotelManagementRazorPage.Pages
                     else
                     {
                         Token = apiResponse;
+                        SessionHelper.SetObjectAsJson(HttpContext.Session, "token", Token);
                         return RedirectToPage("/Customers/Index", new { Token = apiResponse });
                     }
                 }

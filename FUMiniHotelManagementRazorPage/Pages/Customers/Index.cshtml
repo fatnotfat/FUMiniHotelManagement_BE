@@ -1,66 +1,140 @@
 ﻿@page
+@using FUMiniHotelManagementRazorPage.Pages.SessionHelpers
 @model FUMiniHotelManagementRazorPage.Pages.Customers.IndexModel
 
 @{
     ViewData["Title"] = "Index";
+    var token = SessionHelper.GetObjectFromJson<string>(HttpContext.Session, "token");
+    var role = DecodeRoleFromToken(token);
 }
 
-<h1>Index</h1>
-
-<p>
-    <a asp-page="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Customers[0].CustomerFullName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Customers[0].Telephone)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Customers[0].EmailAddress)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Customers[0].CustomerBirthday)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Customers[0].CustomerStatus)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Customers[0].Password)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model.Customers) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.CustomerFullName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Telephone)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EmailAddress)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CustomerBirthday)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CustomerStatus)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Password)
-            </td>
-            <td>
-                    <a asp-page="./Edit" asp-route-id="@item.CustomerId" asp-route-token="@Model.Token">Edit</a> |
-                <a asp-page="./Details" asp-route-id="@item.CustomerId">Details</a> |
-                <a asp-page="./Delete" asp-route-id="@item.CustomerId">Delete</a>
-            </td>
-        </tr>
+@if (token == null)
+{
+    <h1>You must login to access this feature!</h1>
 }
-    </tbody>
-</table>
+else if (role != "Admin")
+{
+    <h1>You do not have permission to access this feature!</h1>
+}
+else
+{
+
+    <h1>Index</h1>
+
+    <p>
+        <a asp-page="Create" asp-route-token="@Model.Token">Create New</a>
+    </p>
+
+
+    <form asp-page="./Index" method="get">
+        <div class="form-actions no-color">
+            <p>
+                Find by name:
+                <input type="text" name="SearchString" value="@Model.CurrentFilter" />
+                <input type="hidden" name="token" value="@Model.Token" />
+                <input type="submit" value="Search" class="btn btn-primary" asp-route-token="@Model.Token" /> |
+                <a asp-page="./Index" asp-route-token="@Model.Token">Back to full List</a>
+            </p>
+        </div>
+    </form>
+
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Customers[0].CustomerFullName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Customers[0].Telephone)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Customers[0].EmailAddress)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Customers[0].CustomerBirthday)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Customers[0].CustomerStatus)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Customers[0].Password)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Customers)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CustomerFullName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Telephone)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.EmailAddress)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CustomerBirthday)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CustomerStatus)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Password)
+                    </td>
+                    <td>
+                        <a asp-page="./Edit" asp-route-id="@item.CustomerId" asp-route-token="@Model.Token">Edit</a> |
+                        <a asp-page="./Details" asp-route-id="@item.CustomerId" asp-route-token="@Model.Token">Details</a> |
+                        <a asp-page="./Delete" asp-route-id="@item.CustomerId" asp-route-token="@Model.Token">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+
+    @*@{*@
+
+    var prevDisabled = !Model.Customers.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.Customers.HasNextPage ? "disabled" : "";
+    @*}*@
+
+
+    <a asp-page="./Index"
+       asp-route-sortOrder="@Model.CurrentSort"
+       asp-route-pageIndex="@(Model.Customers.PageIndex - 1)"
+       asp-route-currentFilter="@Model.CurrentFilter"
+       class="btn btn-primary @prevDisabled"
+       asp-route-token="@Model.Token">
+        Previous
+    </a>
+
+    <a asp-page="./Index"
+       asp-route-sortOrder="@Model.CurrentSort"
+       asp-route-pageIndex="@(Model.Customers.PageIndex + 1)"
+       asp-route-currentFilter="@Model.CurrentFilter"
+       class="btn btn-primary @nextDisabled"
+       asp-route-token="@Model.Token">
+        Next
+    </a>
+
+
+    @functions {
+    // Method to decode role from the token
+    private string DecodeRoleFromToken(string token)
+    {
+        try
+        {
+            return SessionHelper.DecodeRoleFromToken(token);
+        }
+        catch (Exception ex)
+        {
+            // Handle exception (e.g., log it, return default role, etc.)
+            return null; // or return a default role
+        }
+    }
+}
+}

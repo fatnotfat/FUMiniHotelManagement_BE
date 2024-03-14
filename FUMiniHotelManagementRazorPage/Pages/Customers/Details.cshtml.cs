@@ -6,33 +6,44 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using BusinessObject;
+using Services.Interface;
+using Newtonsoft.Json;
+using NuGet.Common;
 
 namespace FUMiniHotelManagementRazorPage.Pages.Customers
 {
     public class DetailsModel : PageModel
     {
-        private readonly BusinessObject.FUMiniHotelManagementContext _context;
+        private readonly IHelper _helper;
 
-        public DetailsModel(BusinessObject.FUMiniHotelManagementContext context)
+        public DetailsModel(IHelper helper)
         {
-            _context = context;
+            _helper = helper;
         }
 
-      public Customer Customer { get; set; } = default!; 
+        public string? Token { get; set; }
+        public Customer Customer { get; set; } = default!;
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        public async Task<IActionResult> OnGetAsync(int? id, string token)
         {
-            if (id == null || _context.Customers == null)
+            string baseUrl = "http://localhost:5282/api/v1/customers";
+            var responseString = await _helper.GetAPI(baseUrl, token);
+            var customers = JsonConvert.DeserializeObject<List<Customer>>(responseString);
+            if (id == null || customers == null)
             {
                 return NotFound();
             }
 
-            var customer = await _context.Customers.FirstOrDefaultAsync(m => m.CustomerId == id);
+            Token = token;
+
+            string baseUrl1 = $"http://localhost:5282/api/v1/customers/{id}";
+            var responseString1 = await _helper.GetAPI(baseUrl1, token);
+            var customer = JsonConvert.DeserializeObject<Customer>(responseString1);
             if (customer == null)
             {
                 return NotFound();
             }
-            else 
+            else
             {
                 Customer = customer;
             }
